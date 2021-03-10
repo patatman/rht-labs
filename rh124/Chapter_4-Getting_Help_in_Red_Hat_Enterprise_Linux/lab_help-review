@@ -1,0 +1,26 @@
+[student@workstation ~]$ lab help-review start
+
+[student@workstation ~]$ man man
+
+[student@workstation ~]$ man -t passwd > passwd.ps
+[student@workstation ~]$ ls -al
+[student@workstation ~]$ file passwd.ps
+[student@workstation ~]$ less passwd.ps
+
+[student@workstation ~]$ man -k postscript viewer
+[student@workstation ~]$ man evince
+
+[student@workstation ~]$ evince passwd.ps 
+[student@workstation ~]$ evince -w passwd.ps 
+[student@workstation ~]$ evince -i 3 passwd.ps 
+
+[student@workstation ~]$ man lp
+[student@workstation ~]$ lp -P 2-3 passwd.ps 
+
+[student@workstation ~]$ pinfo evince
+
+[student@workstation ~]$ firefox file:///usr/share/man/
+
+[student@workstation ~]$ lab help-review grade 
+[student@workstation ~]$ lab help-review finish 
+

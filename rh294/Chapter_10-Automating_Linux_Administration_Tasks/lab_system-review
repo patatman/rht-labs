@@ -1,0 +1,197 @@
+[student@workstation ~]$ lab system-review start
+
+[student@workstation ~]$ cd ~/system-review/
+
+[student@workstation system-review]$ vim repo_playbook.yml
+[student@workstation system-review]$ cat repo_playbook.yml 
+---
+- name: Repository Configuration
+  hosts: webservers
+  tasks:
+    - name: Ensure Example Repo exists
+      yum_repository:
+        name: example-internal
+        description: Example Inc. Internal YUM repo
+        file: example
+        baseurl: http://materials.example.com/yum/repository/
+        gpgcheck: yes
+
+    - name: Ensure Repo RPM key is Installed
+      rpm_key:
+        key: http://materials.example.com/yum/repository/RPM-GPG-KEY-example
+        state: present
+
+    - name: Install Example motd package
+      yum:
+        name: example-motd
+        state: present
+
+[student@workstation system-review]$ ansible-playbook repo_playbook.yml
+
+[student@workstation system-review]$ mkdir vars
+[student@workstation system-review]$ vim vars/users_vars.yml
+[student@workstation system-review]$ cat vars/users_vars.yml
+---
+users:
+  - username: ops1
+    groups: webadmin
+  - username: ops2
+    groups: webadmin
+[student@workstation system-review]$ vim users.yml
+[student@workstation system-review]$ cat users.yml 
+---
+- name: Create multiple local users
+  hosts: webservers
+  vars_files:
+    - vars/users_vars.yml
+  tasks:
+    - name: Add webadmin group
+      group:
+        name: webadmin
+        state: present
+
+    - name: Create user accounts
+      user:
+        name: "{{ item.username }}"
+        groups: webadmin
+      loop: "{{ users }}"
+
+[student@workstation system-review]$ ansible-playbook users.yml
+
+[student@workstation system-review]$ cat storage_vars.yml 
+---
+partitions:
+  - number: 1
+    start: 1MiB
+    end: 257MiB
+
+volume_groups:
+  - name: apache-vg
+    devices: /dev/vdb1
+
+logical_volumes:
+  - name: content-lv
+    size: 64M
+    vgroup: apache-vg
+    mount_path: /var/www
+
+  - name: logs-lv
+    size: 128M
+    vgroup: apache-vg
+    mount_path: /var/log/httpd
+
+[student@workstation system-review]$ vim storage.yml 
+[student@workstation system-review]$ cat storage.yml 
+---
+- name: Ensure Apache Storage Configuration
+  hosts: webservers
+  vars_files:
+    - storage_vars.yml
+  tasks:
+    - name: Correct partitions exist on /dev/vdb
+      parted:
+        device: /dev/vdb
+        state: present
+        number: "{{ item.number }}"
+        part_start: "{{ item.start }}"
+        part_end: "{{ item.end }}"
+      loop: "{{ partitions }}"
+
+    - name: Ensure Volume Groups Exist
+      lvg:
+        vg: "{{ item.name }}"
+        pvs: "{{ item.devices }}"
+      loop: "{{  volume_groups }}"
+
+    - name: Create each Logical Volume (LV) if needed
+      lvol:
+        vg: "{{ item.vgroup }}"
+        lv: "{{ item.name }}"
+        size: "{{ item.size }}"
+      loop: "{{ logical_volumes }}"
+      when: true
+
+    - name: Ensure XFS Filesystem exists on each LV
+      filesystem:
+        dev: "/dev/{{ item.vgroup }}/{{ item.name }}"
+        fstype: xfs
+      loop: "{{ logical_volumes }}"
+
+    - name: Ensure the correct capacity for each LV
+      lvol:
+        vg: "{{ item.vgroup }}"
+        lv: "{{ item.name }}"
+        size: "{{ item.size }}"
+        resizefs: yes
+        force: yes
+      loop: "{{ logical_volumes }}"
+
+    - name: Each Logical Volume is mounted
+      mount:
+        path: "{{ item.mount_path }}"
+        src: "/dev/{{ item.vgroup }}/{{ item.name }}"
+        fstype: xfs
+        state: mounted
+      loop: "{{ logical_volumes }}"
+
+[student@workstation system-review]$ ansible-playbook storage.yml
+
+[student@workstation system-review]$ vim create_crontab_file.yml
+[student@workstation system-review]$ cat create_crontab_file.yml 
+---
+- name: Recurring cron job
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Crontab file exists
+      cron:
+        name: Add date and time to a file
+        minute: "*/2"
+        hour: 9-16
+        weekday: 1-5
+        user: devops
+        job: df >> /home/devops/disk_usage
+        cron_file: disk_usage
+        state: present
+[student@workstation system-review]$ ansible-playbook create_crontab_file.yml 
+
+[student@workstation system-review]$ ansible-galaxy list
+# /usr/share/ansible/roles
+- linux-system-roles.kdump, (unknown version)
+- linux-system-roles.network, (unknown version)
+- linux-system-roles.postfix, (unknown version)
+- linux-system-roles.selinux, (unknown version)
+- linux-system-roles.timesync, (unknown version)
+- rhel-system-roles.kdump, (unknown version)
+- rhel-system-roles.network, (unknown version)
+- rhel-system-roles.postfix, (unknown version)
+- rhel-system-roles.selinux, (unknown version)
+- rhel-system-roles.timesync, (unknown version)
+# /etc/ansible/roles
+ [WARNING]: - the configured path /home/student/.ansible/roles does not exist.
+
+[student@workstation system-review]$ vim network_playbook.yml
+[student@workstation system-review]$ cat network_playbook.yml 
+---
+- name: NIC Configuration
+  hosts: webservers
+  roles:
+    - rhel-system-roles.network
+[student@workstation system-review]$ mkdir -pv group_vars/webservers
+mkdir: created directory 'group_vars'
+mkdir: created directory 'group_vars/webservers'
+[student@workstation system-review]$ vim group_vars/webservers/network.yml
+[student@workstation system-review]$ cat group_vars/webservers/network.yml
+---
+network_connections:
+  - name: enp2s0
+    type: ethernet
+    ip:
+      address:
+        - 172.25.250.40/24
+[student@workstation system-review]$ ansible-playbook network_playbook.yml 
+
+[student@workstation system-review]$ ansible webservers -m setup -a 'filter=ansible_enp2s0'
+
+[student@workstation ~]$ lab system-review grade
+[student@workstation ~]$ lab system-review finish

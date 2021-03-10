@@ -1,0 +1,52 @@
+[student@workstation ~]$ lab troubleshoot-review start
+
+[student@workstation ~]$ cd ~/troubleshoot-review/
+
+[student@workstation troubleshoot-review]$ ansible-playbook --syntax-check secure-web.yml
+[student@workstation troubleshoot-review]$ vim secure-web.yml
+[student@workstation troubleshoot-review]$ grep random_var secure-web.yml
+    random_var: "This is colon: test"
+
+[student@workstation troubleshoot-review]$ ansible-playbook --syntax-check secure-web.yml
+[student@workstation troubleshoot-review]$ vim secure-web.yml
+...
+        - name: start and enable web services
+          service:
+            name: httpd
+            state: started
+            enabled: yes
+...
+(indent issue)
+
+[student@workstation troubleshoot-review]$ ansible-playbook --syntax-check secure-web.yml
+[student@workstation troubleshoot-review]$ vim secure-web.yml
+...
+        - name: install web server packages
+          yum:
+            name: "{{ item }}"
+...
+(quotes issue)
+
+[student@workstation troubleshoot-review]$ ansible-playbook --syntax-check secure-web.yml 
+
+playbook: secure-web.yml
+
+[student@workstation troubleshoot-review]$ ansible-playbook secure-web.yml
+...
+serverb.lab.example.com    : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
+[student@workstation troubleshoot-review]$ vim inventory-lab 
+[student@workstation troubleshoot-review]$ cat inventory-lab 
+[webservers]
+serverb.lab.example.com
+
+[student@workstation troubleshoot-review]$ vim secure-web.yml
+...
+  remote_user: devops
+  become: true
+...
+[student@workstation troubleshoot-review]$ ansible-playbook secure-web.yml
+
+[student@workstation troubleshoot-review]$ ansible all -u devops -b -m command -a 'systemctl status httpd'
+
+[student@workstation ~]$ lab troubleshoot-review grade
+[student@workstation ~]$ lab troubleshoot-review finish

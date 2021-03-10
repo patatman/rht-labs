@@ -1,0 +1,39 @@
+[student@workstation ~]$ lab containers-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com
+
+[student@serverb ~]$ sudo yum module install container-tools -y
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ ssh podsvc@serverb.lab.example.com
+
+[podsvc@serverb ~]$ podman login registry.lab.example.com
+Username: admin
+Password: 
+Login Succeeded!
+[podsvc@serverb ~]$ skopeo inspect docker://registry.lab.example.com/rhel8/mariadb-103
+
+[podsvc@serverb ~]$ mkdir ~/db_data
+[podsvc@serverb ~]$ chmod 777 ~/db_data
+
+[podsvc@serverb ~]$ podman run -d --name inventorydb -p 13306:3306 -v /home/podsvc/db_data:/var/lib/mysql/data:Z -e MYSQL_USER=operator1 -e MYSQL_PASSWORD=redhat -e MYSQL_DATABASE=inventory -e MYSQL_ROOT_PASSWORD=redhat registry.lab.example.com/rhel8/mariadb-103:1-86
+[podsvc@serverb ~]$ ./containers-review/testdb.sh 
+
+
+[podsvc@serverb ~]$ mkdir -p ~/.config/systemd/user/
+[podsvc@serverb ~]$ cd ~/.config/systemd/user/
+[podsvc@serverb user]$ podman generate systemd --name inventorydb --files --new
+/home/podsvc/.config/systemd/user/container-inventorydb.service
+
+[podsvc@serverb user]$ podman stop inventorydb
+[podsvc@serverb user]$ podman rm inventorydb
+
+[podsvc@serverb user]$ systemctl --user daemon-reload 
+[podsvc@serverb user]$ systemctl --user enable --now container-inventorydb.service 
+[podsvc@serverb user]$ ~/containers-review/testdb.sh
+[podsvc@serverb user]$ podman ps
+[podsvc@serverb user]$ loginctl enable-linger
+[podsvc@serverb user]$ exit
+
+[student@workstation ~]$ lab containers-review grade
+[student@workstation ~]$ lab containers-review finish

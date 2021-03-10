@@ -1,0 +1,31 @@
+[student@workstation ~]$ lab lvm-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ sudo -i
+
+[root@serverb ~]# parted -s /dev/vdb mkpart primary 514MiB 1026MiB
+[root@serverb ~]# parted -s /dev/vdb set 2 lvm on
+[root@serverb ~]# parted /dev/vdb print 
+[root@serverb ~]# udevadm settle 
+
+[root@serverb ~]# pvcreate /dev/vdb2 
+[root@serverb ~]# vgextend serverb_01_vg /dev/vdb2 
+
+[root@serverb ~]# lvextend -L 768M /dev/serverb_01_vg/serverb_01_lv 
+[root@serverb ~]# xfs_growfs /storage/data1/
+
+[root@serverb ~]# lvcreate -n serverb_02_lv -L 128M serverb_01_vg
+[root@serverb ~]# mkfs -t xfs /dev/serverb_01_vg/serverb_02_lv
+[root@serverb ~]# mkdir /storage/data2
+
+[root@serverb ~]# vim /etc/fstab 
+[root@serverb ~]# tail -1 /etc/fstab 
+/dev/serverb_01_vg/serverb_02_lv /storage/data2 xfs defaults 1 2
+[root@serverb ~]# systemctl daemon-reload 
+[root@serverb ~]# mount /storage/data2/
+
+[root@serverb ~]# systemctl reboot 
+
+[student@workstation ~]$ lab lvm-review grade
+[student@workstation ~]$ lab lvm-review finish 

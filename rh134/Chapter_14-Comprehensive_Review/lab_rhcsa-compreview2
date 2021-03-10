@@ -1,0 +1,59 @@
+[student@workstation ~]$ lab rhcsa-compreview2 start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ sudo -i
+
+[root@serverb ~]# parted /dev/vdb mklabel msdos
+[root@serverb ~]# parted /dev/vdb mkpart primary 1GiB 3GiB
+[root@serverb ~]# parted /dev/vdb set 1 lvm on                            
+
+[root@serverb ~]# pvcreate /dev/vdb1 
+WARNING: xfs signature detected on /dev/vdb1 at offset 0. Wipe it? [y/n]: y
+  Wiping xfs signature on /dev/vdb1.
+  Physical volume "/dev/vdb1" successfully created.
+[root@serverb ~]# vgcreate extra_storage /dev/vdb1
+  Volume group "extra_storage" successfully created
+[root@serverb ~]# lvcreate -L 1GiB -n vol_home extra_storage
+  Logical volume "vol_home" created.
+
+[root@serverb ~]# mkdir /home-directories
+[root@serverb ~]# mkfs -t xfs /dev/extra_storage/vol_home
+[root@serverb ~]# lsblk -o UUID /dev/extra_storage/vol_home
+UUID
+7259af89-ca92-4f16-966a-a1d411dd43de
+[root@serverb ~]# echo "UUID=7259af89-ca92-4f16-966a-a1d411dd43de /home-directories xfs defaults 0 0" >> /etc/fstab 
+[root@serverb ~]# mount -a
+
+[root@serverb ~]# mkdir /local-share
+[root@serverb ~]# echo "servera.lab.example.com:/share /local-share nfs rw,sync 0 0" >> /etc/fstab 
+[root@serverb ~]# mount /local-share/
+
+[root@serverb ~]# parted /dev/vdc mklabel msdos
+[root@serverb ~]# parted /dev/vdc mkpart primary linux-swap 1MiB 513MiB
+[root@serverb ~]# mkswap /dev/vdc1 
+Setting up swapspace version 1, size = 512 MiB (536866816 bytes)
+no label, UUID=3ed68488-50ae-4f0a-b208-9cb07a851c8c
+[root@serverb ~]# lsblk -o UUID /dev/vdc1 
+UUID
+3ed68488-50ae-4f0a-b208-9cb07a851c8c
+[root@serverb ~]# echo "UUID=3ed68488-50ae-4f0a-b208-9cb07a851c8c swap swap defaults 0 0" >> /etc/fstab 
+[root@serverb ~]# swapon -a
+
+[root@serverb ~]# groupadd production
+[root@serverb ~]# for i in 1 2 3 4; do useradd -G production production$i; done
+
+[root@serverb ~]# vim /etc/tmpfiles.d/volatile.conf
+[root@serverb ~]# systemd-tmpfiles --create /etc/tmpfiles.d/volatile.conf 
+
+[root@serverb ~]# mkdir /webcontent
+[root@serverb ~]# setfacl -m u:production1:rx /webcontent/
+[root@serverb ~]# setfacl -m g:production:rwx /webcontent/
+[root@serverb ~]# setfacl -m d:u:production1:rx /webcontent/
+[root@serverb ~]# setfacl -m d:g:production:rwx /webcontent/
+
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab rhcsa-compreview2 grade
+[student@workstation ~]$ lab rhcsa-compreview2 finish

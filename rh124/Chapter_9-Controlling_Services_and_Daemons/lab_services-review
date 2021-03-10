@@ -1,0 +1,22 @@
+[student@workstation ~]$ lab services-review start 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ systemctl status psacct.service 
+[student@serverb ~]$ sudo systemctl start psacct.service 
+
+[student@serverb ~]$ systemctl is-active psacct.service 
+[student@serverb ~]$ sudo systemctl enable psacct.service 
+[student@serverb ~]$ systemctl is-enabled psacct.service 
+
+[student@serverb ~]$ systemctl status rsyslog.service 
+[student@serverb ~]$ sudo systemctl stop rsyslog.service 
+
+[student@serverb ~]$ systemctl is-active rsyslog.service 
+[student@serverb ~]$ sudo systemctl disable rsyslog.service 
+[student@serverb ~]$ systemctl is-enabled rsyslog.service 
+
+[student@serverb ~]$ sudo systemctl reboot 
+
+[student@workstation ~]$ lab services-review grade 
+[student@workstation ~]$ lab services-review finish

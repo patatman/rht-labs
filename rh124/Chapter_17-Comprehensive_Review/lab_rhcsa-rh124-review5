@@ -1,0 +1,86 @@
+[student@workstation ~]$ lab rhcsa-rh124-review5 start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ lsblk -fs
+NAME  FSTYPE LABEL UUID                                 MOUNTPOINT
+vda1                                                    
+└─vda                                                   
+vda2  vfat         399C-0F7D                            /boot/efi
+└─vda                                                   
+vda3  xfs    root  3cd0d4ca-93f6-423b-a469-70ab2b10b667 /
+└─vda                                                   
+vdb1  xfs          bd30fa19-87db-40ec-9f25-112197037505 
+└─vdb                                                   
+vdc                                                     
+vdd                                                     
+[student@serverb ~]$ sudo mkdir /review5-disk
+[student@serverb ~]$ sudo mount /dev/vdb1 /review5-disk
+
+[student@serverb ~]$ df -Th
+Filesystem     Type      Size  Used Avail Use% Mounted on
+devtmpfs       devtmpfs  887M     0  887M   0% /dev
+tmpfs          tmpfs     914M     0  914M   0% /dev/shm
+tmpfs          tmpfs     914M   28M  886M   4% /run
+tmpfs          tmpfs     914M     0  914M   0% /sys/fs/cgroup
+/dev/vda3      xfs       9.9G  1.7G  8.3G  17% /
+/dev/vda2      vfat      100M  6.8M   94M   7% /boot/efi
+tmpfs          tmpfs     183M     0  183M   0% /run/user/1000
+/dev/vdb1      xfs       2.0G   47M  2.0G   3% /review5-disk
+
+[student@serverb ~]$ find / -iname review5-path 2> /dev/null
+/var/tmp/review5-path
+[student@serverb ~]$ sudo vim /review5-disk/review5-path.txt
+[student@serverb ~]$ cat /review5-disk/review5-path.txt 
+/var/tmp/review5-path
+
+[student@serverb ~]$ find / -user contractor1 -group contractor -perm 640 2> /dev/null
+/usr/share/review5-perms
+[student@serverb ~]$ sudo vim /review5-disk/review5-perms.txt
+[student@serverb ~]$ cat /review5-disk/review5-perms.txt
+/usr/share/review5-perms
+
+[student@serverb ~]$ find / -size 100c 2> /dev/null
+/dev/dri
+/dev/disk/by-uuid
+/run/NetworkManager
+/run/udev/tags/master-of-seat
+/run/initramfs
+/etc/audit
+/etc/lvm
+/usr/lib/python3.6/site-packages/ptyprocess
+/usr/lib/python3.6/site-packages/dnf/conf
+/usr/share/licenses/ethtool/LICENSE
+/usr/share/doc/libuser
+/usr/share/doc/python3-cryptography/docs/x509
+/usr/share/doc/python3-jinja2/ext
+/usr/share/doc/plymouth/AUTHORS
+/usr/share/man/es/man8
+/usr/share/vim/vim80/macros/maze/main.aap
+/usr/libexec/plymouth
+/opt/review5-size
+[student@serverb ~]$ sudo vim /review5-disk/review5-size.txt
+[student@serverb ~]$ cat /review5-disk/review5-size.txt
+/dev/dri
+/dev/disk/by-uuid
+/run/NetworkManager
+/run/udev/tags/master-of-seat
+/run/initramfs
+/etc/audit
+/etc/lvm
+/usr/lib/python3.6/site-packages/ptyprocess
+/usr/lib/python3.6/site-packages/dnf/conf
+/usr/share/licenses/ethtool/LICENSE
+/usr/share/doc/libuser
+/usr/share/doc/python3-cryptography/docs/x509
+/usr/share/doc/python3-jinja2/ext
+/usr/share/doc/plymouth/AUTHORS
+/usr/share/man/es/man8
+/usr/share/vim/vim80/macros/maze/main.aap
+/usr/libexec/plymouth
+/opt/review5-size
+
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab rhcsa-rh124-review5 grade
+[student@workstation ~]$ lab rhcsa-rh124-review5 finish

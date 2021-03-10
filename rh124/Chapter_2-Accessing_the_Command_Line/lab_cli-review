@@ -1,0 +1,11 @@
+[student@workstation ~]$ lab cli-review start 
+[student@workstation ~]$ date
+[student@workstation ~]$ date +%r
+[student@workstation ~]$ file ~/zcat 
+[student@workstation ~]$ wc zcat 
+[student@workstation ~]$ head zcat 
+[student@workstation ~]$ tail zcat 
+[student@workstation ~]$ tail zcat 
+[student@workstation ~]$ tail -n 20 zcat 
+[student@workstation ~]$ date +%r
+[student@workstation ~]$ lab cli-review grade 

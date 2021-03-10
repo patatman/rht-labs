@@ -1,0 +1,49 @@
+[student@workstation ~]$ lab rhcsa-rh124-review4 start
+
+[kiosk@foundation0 ~]$ rht-vmview view serverb
+
+[student@serverb ~]$ nmcli device status 
+DEVICE  TYPE      STATE      CONNECTION         
+eth0    ethernet  connected  Wired connection 1 
+lo      loopback  unmanaged  --                 
+[student@serverb ~]$ sudo nmcli connection add con-name static type ethernet ifname eth0 ipv4.addresses '172.25.250.111/24' ipv4.gateway '172.25.250.254' ipv4.dns '172.25.250.254' ipv4.method manual
+Connection 'static' (ff19c644-aabf-4dcf-8b15-147d091caec0) successfully added.
+[student@serverb ~]$ sudo nmcli connection up static 
+Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/4)
+
+[student@serverb ~]$ sudo hostnamectl set-hostname server-review4.lab4.example.com
+[student@serverb ~]$ hostname
+server-review4.lab4.example.com
+
+[student@serverb ~]$ sudo vim /etc/hosts 
+[student@server-review4 ~]$ grep client-review4 /etc/hosts 
+172.25.250.10   servera.lab.example.com servera client-review4
+[student@serverb ~]$ ping -c2 client-review4 
+PING servera.lab.example.com (172.25.250.10) 56(84) bytes of data.
+64 bytes from servera.lab.example.com (172.25.250.10): icmp_seq=1 ttl=64 time=1.16 ms
+64 bytes from servera.lab.example.com (172.25.250.10): icmp_seq=2 ttl=64 time=0.410 ms
+
+--- servera.lab.example.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 3ms
+rtt min/avg/max/mdev = 0.410/0.787/1.164/0.377 ms
+
+[student@serverb ~]$ sudo nmcli connection modify static +ipv4.addresses '172.25.250.211/24' 
+[student@serverb ~]$ sudo nmcli connection up static 
+Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/6)
+
+[student@serverb ~]$ ping -c2 172.25.250.211
+PING 172.25.250.211 (172.25.250.211) 56(84) bytes of data.
+64 bytes from 172.25.250.211: icmp_seq=1 ttl=64 time=0.060 ms
+64 bytes from 172.25.250.211: icmp_seq=2 ttl=64 time=0.075 ms
+
+--- 172.25.250.211 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 60ms
+rtt min/avg/max/mdev = 0.060/0.067/0.075/0.011 ms
+
+[student@server-review4 ~]$ sudo nmcli connection up 'Wired connection 1'
+Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/9)
+
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab rhcsa-rh124-review4 grade
+[student@workstation ~]$ lab rhcsa-rh124-review4 finish

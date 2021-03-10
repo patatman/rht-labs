@@ -1,0 +1,22 @@
+[student@workstation ~]$ lab log-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ timedatectl list-timezones | grep Jamaica
+[student@serverb ~]$ sudo timedatectl set-timezone America/Jamaica 
+[student@serverb ~]$ timedatectl 
+
+[student@serverb ~]$ date +%T
+[student@serverb ~]$ date +%T -d "-30 minutes"
+[student@serverb ~]$ journalctl --since $(date +%T -d "-30 minutes") --until $(date +%T)
+
+[student@serverb ~]$ sudo vim /etc/rsyslog.d/auth-errors.conf
+[student@serverb ~]$ sudo cat /etc/rsyslog.d/auth-errors.conf
+authpriv.alert	/var/log/auth-errors
+[student@serverb ~]$ sudo systemctl restart rsyslog.service 
+[student@serverb ~]$ logger -p authpriv.alert "Logging test authpriv.alert"
+[student@serverb ~]$ sudo tail /var/log/auth-errors 
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab log-review grade 
+[student@workstation ~]$ lab log-review finish 

@@ -1,0 +1,31 @@
+[student@workstation ~]$ lab software-review start 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ sudo -i
+
+[root@serverb ~]# vim /etc/yum.repos.d/errata.repo
+[root@serverb ~]# cat /etc/yum.repos.d/errata.repo
+[errata]
+name=Red Hat Updates
+baseurl=http://content.example.com/rhel8.2/x86_64/rhcsa-practice/errata
+enabled=1
+gpgcheck=0
+[root@serverb ~]# yum list xsane-gimp
+[root@serverb ~]# yum install xsane-gimp -y
+
+[root@serverb ~]# yum module list
+
+[root@serverb ~]# yum module install httpd:2.4/common -y
+
+[root@serverb ~]# yum list cups
+[root@serverb ~]# yum remove cups -y
+[root@serverb ~]# exit
+
+[student@serverb ~]$ rpm -q -p rhcsa-script-1.0.0-1.noarch.rpm -i
+[student@serverb ~]$ sudo yum localinstall rhcsa-script-1.0.0-1.noarch.rpm -y
+[student@serverb ~]$ rpm -q rhcsa-script
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab software-review grade
+[student@workstation ~]$ lab software-review finish

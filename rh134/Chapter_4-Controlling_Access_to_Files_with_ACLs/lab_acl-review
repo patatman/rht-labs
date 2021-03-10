@@ -1,0 +1,25 @@
+[student@workstation ~]$ lab acl-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com
+
+[student@serverb ~]$ sudo -i
+
+[root@serverb ~]# chgrp -R managers /shares/cases
+[root@serverb ~]# chmod g+s /shares/cases
+[root@serverb ~]# chmod 660 /shares/cases/*
+
+[root@serverb ~]# setfacl -Rm g:contractors:rwX /shares/cases
+[root@serverb ~]# setfacl -Rm u:contractor3:rX /shares/cases
+
+[root@serverb ~]# setfacl -m d:g:contractors:rwx /shares/cases
+[root@serverb ~]# setfacl -m d:u:contractor3:rx /shares/cases
+
+[root@serverb ~]# ls -ld /shares/cases
+[root@serverb ~]# ls -l /shares/cases
+[root@serverb ~]# getfacl /shares/cases
+
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab acl-review grade 
+[student@workstation ~]$ lab acl-review finish 

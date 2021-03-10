@@ -1,0 +1,55 @@
+[student@workstation ~]$ lab perms-review start 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+[student@serverb ~]$ su -
+[root@serverb ~]# mkdir /home/techdocs
+
+[root@serverb ~]# chown :techdocs /home/techdocs
+
+[root@serverb ~]# su - tech1 
+[tech1@serverb ~]$ touch /home/techdocs/techdoc1.txt
+[tech1@serverb ~]$ ls -ld /home/techdocs/
+
+[tech1@serverb ~]$ exit
+
+[root@serverb ~]# chmod 2770 /home/techdocs/
+[root@serverb ~]# ls -ld /home/techdocs/
+
+[root@serverb ~]# su - tech1 
+[tech1@serverb ~]$ touch /home/techdocs/techdoc1.txt
+[tech1@serverb ~]$ ls -l /home/techdocs/techdoc1.txt 
+[tech1@serverb ~]$ exit
+
+[root@serverb ~]# su - tech2 
+[tech2@serverb ~]$ echo "This is the first tech doc." > /home/techdocs/techdoc1.txt 
+[tech2@serverb ~]$ exit
+
+[root@serverb ~]# su - database1 
+[database1@serverb ~]$ echo "This is the first tech doc." >> /home/techdocs/techdoc1.txt
+-bash: /home/techdocs/techdoc1.txt: Permission denied
+[database1@serverb ~]$ ls -l /home/techdocs/techdoc1.txt
+ls: cannot access '/home/techdocs/techdoc1.txt': Permission denied
+[database1@serverb ~]$ exit
+
+[root@serverb ~]# su - student 
+[student@serverb ~]$ 
+[student@serverb ~]$ umask 
+[student@serverb ~]$ exit
+
+[root@serverb ~]# vim /etc/profile.d/local-umask.sh
+[root@serverb ~]# cat /etc/profile.d/local-umask.sh
+# Overrides default umask configuration
+if [ $UID -gt 199 ] && [ "`id -gn`" = "`id -un`" ]; then
+    umask 007
+else
+    umask 022
+fi
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+[student@serverb ~]$ umask 
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab perms-review grade 
+[student@workstation ~]$ lab perms-review finish 

@@ -1,0 +1,171 @@
+[student@workstation ~]$ lab projects-review start
+
+[student@workstation ~]$ cd ~/projects-review/
+[student@workstation projects-review]$ cat ansible.cfg 
+[defaults]
+inventory=inventory
+remote_user=devops
+
+[privilege_escalation]
+become=True
+become_method=sudo
+beome_user=root
+become_ask_pass=False
+[student@workstation projects-review]$ ll
+total 8
+-rw-r--r--. 1 student student  143 Mar 10 20:52 ansible.cfg
+drwxr-xr-x. 2 student student   23 Mar 10 20:52 files
+drwxr-xr-x. 2 student student   26 Mar 10 20:52 inventory
+-rw-r--r--. 1 student student 1064 Mar 10 20:52 playbook.yml
+
+[student@workstation projects-review]$ chmod 755 inventory/inventory.py 
+[student@workstation projects-review]$ inventory/inventory.py --list
+{"all": {"hosts": ["workstation.lab.example.com", "servera.lab.example.com", "serverb.lab.example.com", "serverc.lab.example.com", "serverd.lab.example.com"], "vars": {}}}
+[student@workstation projects-review]$ ansible server*.lab.example.com --list-hosts
+  hosts (4):
+    servera.lab.example.com
+    serverb.lab.example.com
+    serverc.lab.example.com
+    serverd.lab.example.com
+[student@workstation projects-review]$ vim playbook.yml 
+[student@workstation projects-review]$ grep hosts playbook.yml 
+  hosts: server*.lab.example.com
+
+[student@workstation projects-review]$ vim tasks/web_tasks.yml
+[student@workstation projects-review]$ cat tasks/web_tasks.yml
+---
+- name: Install httpd
+  yum:
+    name: httpd
+    state: latest
+
+- name: Enable and start httpd
+  service:
+    name: httpd
+    enabled: true
+    state: started
+
+- name: Tuning configuration installed
+  copy:
+    src: files/tune.conf
+    dest: /etc/httpd/conf.d/tune.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    restart httpd
+
+[student@workstation projects-review]$ vim tasks/firewall_tasks.yml
+[student@workstation projects-review]$ cat tasks/firewall_tasks.yml
+---
+- name: Install firewalld
+  yum:
+    name: firewalld
+    state: latest
+
+- name: Enable and start the firewall
+  service:
+    name: firewalld
+    enabled: true
+    state: started
+
+- name: Open the port for http
+  firewalld:
+    service: http
+    immediate: true
+    permanent: true
+    state: enabled
+
+[student@workstation projects-review]$ vim playbook.yml 
+[student@workstation projects-review]$ cat playbook.yml 
+---
+- name: Install and configure web service
+  hosts: server*.lab.example.com
+  tasks:
+    - name: Import the web_tasks.yml task file
+      import_tasks: tasks/web_tasks.yml
+
+    - name: Import the firewall_tasks.yml task file
+      import_tasks: tasks/firewall_tasks.yml
+
+  handlers:
+    - name: restart httpd
+      service:
+        name: httpd
+        state: restarted
+
+[student@workstation projects-review]$ vim tasks/install_and_enable.yml
+[student@workstation projects-review]$ cat tasks/install_and_enable.yml
+---
+- name: Install {{ package }}
+  yum:
+    name: "{{ package }}"
+    state: latest
+
+- name: Enable and start {{ service }}
+  service:
+    name: "{{ service }}"
+    enabled: true
+    state: started
+
+[student@workstation projects-review]$ vim tasks/web_tasks.yml 
+[student@workstation projects-review]$ cat tasks/web_tasks.yml 
+---
+- name: Install and start httpd
+  import_tasks: install_and_enable.yml
+  vars:
+    package: httpd
+    service: httpd
+
+- name: Tuning configuration installed
+  copy:
+    src: files/tune.conf
+    dest: /etc/httpd/conf.d/tune.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    restart httpd
+
+[student@workstation projects-review]$ vim tasks/firewall_tasks.yml 
+[student@workstation projects-review]$ cat tasks/firewall_tasks.yml
+---
+- name: Install and start firewalld
+  import_tasks: install_and_enable.yml
+  vars:
+    package: firewalld
+    service: firewalld
+
+- name: Open the port for http
+  firewalld:
+    service: http
+    immediate: true
+    permanent: true
+    state: enabled
+
+[student@workstation projects-review]$ vim playbook.yml 
+[student@workstation projects-review]$ cat playbook.yml 
+---
+- name: Install and configure web service
+  hosts: server*.lab.example.com
+  serial: 2
+  tasks:
+    - name: Import the web_tasks.yml task file
+      import_tasks: tasks/web_tasks.yml
+
+    - name: Import the firewall_tasks.yml task file
+      import_tasks: tasks/firewall_tasks.yml
+
+  handlers:
+    - name: restart httpd
+      service:
+        name: httpd
+        state: restarted
+
+[student@workstation projects-review]$ ansible-playbook playbook.yml --syntax-check
+
+playbook: playbook.yml
+[student@workstation projects-review]$ ansible-playbook playbook.yml
+
+[student@workstation ~]$ lab projects-review grade
+[student@workstation ~]$ lab projects-review finish

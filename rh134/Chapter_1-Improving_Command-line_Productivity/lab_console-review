@@ -1,0 +1,31 @@
+[student@workstation ~]$ lab console-review start 
+
+[student@workstation ~]$ mkdir -p ~/bin
+[student@workstation ~]$ vim ~/bin/bash-lab
+[student@workstation ~]$ cat ~/bin/bash-lab
+
+#!/bin/bash
+
+USER='student'
+OUTPUT='/home/student/output'
+
+function run () {
+    ssh ${USER}@${SERVER} "$1" >> ${OUTPUT}-${SERVER}
+    echo "#####" >> ${OUTPUT}-${SERVER}
+}
+
+for SERVER in servera serverb; do
+    echo > ${OUTPUT}-${SERVER}
+    run "hostname -f"
+    run "lscpu | grep '^CPU'"
+    run "grep -v '^$' /etc/selinux/config | grep -v '^#'"
+    run "sudo grep 'Failed password' /var/log/secure"
+done
+
+[student@workstation ~]$ chmod +x ~/bin/bash-lab
+[student@workstation ~]$ bash-lab
+[student@workstation ~]$ cat output-servera
+[student@workstation ~]$ cat output-serverb
+
+[student@workstation ~]$ lab console-review grade
+[student@workstation ~]$ lab console-review finish

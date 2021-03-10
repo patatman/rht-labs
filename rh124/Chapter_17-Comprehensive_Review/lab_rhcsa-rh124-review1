@@ -1,0 +1,81 @@
+[student@workstation ~]$ lab rhcsa-rh124-review1 start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com
+
+[student@serverb ~]$ mkdir grading
+[student@serverb ~]$ touch grading/grade{1,2,3}
+[student@serverb ~]$ ls grading/
+grade1  grade2  grade3
+
+[student@serverb ~]$ head -5 bin/manage-files > grading/manage-files.txt
+[student@serverb ~]$ cat grading/manage-files.txt
+Test AA
+Test BB
+Test CC
+Test DD
+Test EE
+
+[student@serverb ~]$ tail -3 bin/manage-files >> grading/manage-files.txt 
+[student@serverb ~]$ cat grading/manage-files.txt
+Test AA
+Test BB
+Test CC
+Test DD
+Test EE
+Test HH
+Test II
+Test JJ
+
+[student@serverb ~]$ cd grading/
+[student@serverb grading]$ cp manage-files.txt manage-files-copy.txt 
+[student@serverb grading]$ cd 
+
+[student@serverb ~]$ vim grading/manage-files-copy.txt 
+[student@serverb ~]$ cat grading/manage-files-copy.txt
+Test AA
+Test BB
+Test CC
+Test DD
+Test EE
+Test HH
+Test II
+Test JJ
+Test JJ
+
+[student@serverb ~]$ vim grading/manage-files-copy.txt 
+[student@serverb ~]$ cat grading/manage-files-copy.txt
+Test AA
+Test BB
+Test CC
+Test DD
+Test EE
+Test II
+Test JJ
+Test JJ
+
+[student@serverb ~]$ vim grading/manage-files-copy.txt 
+[student@serverb ~]$ cat grading/manage-files-copy.txt
+Test AA
+Test BB
+A new line
+Test CC
+Test DD
+Test EE
+Test II
+Test JJ
+Test JJ
+
+[student@serverb ~]$ ln grading/grade1 hardlink
+[student@serverb ~]$ ls -l hardlink
+-rw-rw-r--. 2 student student   0 Mar  4 01:02 hardlink
+
+[student@serverb ~]$ ln -s grading/grade2 softlink
+[student@serverb ~]$ ls -l softlink 
+lrwxrwxrwx. 1 student student 14 Mar  4 01:05 softlink -> grading/grade2
+
+[student@serverb ~]$ ls -l /boot > grading/longlisting.txt
+
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab rhcsa-rh124-review1 grade
+[student@workstation ~]$ lab rhcsa-rh124-review1 finish

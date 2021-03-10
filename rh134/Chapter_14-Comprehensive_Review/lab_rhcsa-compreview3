@@ -1,0 +1,66 @@
+[student@workstation ~]$ lab rhcsa-compreview3 start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ ssh-keygen 
+[student@serverb ~]$ ssh-copy-id student@servera
+
+[student@serverb ~]$ ssh student@servera
+[student@servera ~]$ sudo vim /etc/selinux/config 
+[student@servera ~]$ grep ^SELINUX= /etc/selinux/config
+SELINUX=permissive
+[student@servera ~]$ sudo systemctl reboot 
+
+[student@serverb ~]$ sudo -i
+[root@serverb ~]# yum install autofs -y 
+
+[root@serverb ~]# vim /etc/auto.master.d/production5.autofs
+[root@serverb ~]# cat /etc/auto.master.d/production5.autofs 
+/- /etc/auto.production5
+
+[root@serverb ~]# getent passwd production5
+production5:x:5001:5001::/localhome/production5:/bin/bash
+
+[root@serverb ~]# vim /etc/auto.production5
+[root@serverb ~]# cat /etc/auto.production5
+/localhome/production5	-rw	servera.lab.example.com:/home-directories/production5
+
+[root@serverb ~]# systemctl restart autofs 
+
+[root@serverb ~]# ssh production5@servera
+[production5@servera ~]$ ssh-keygen 
+[production5@servera ~]$ ssh-copy-id production5@serverb
+
+[production5@servera ~]$ ssh -o pubkeyauthentication=yes -o passwordauthentication=no production5@serverb
+production5@serverb: Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password).
+
+[production5@servera ~]$ exit
+[root@serverb ~]# setsebool -P use_nfs_home_dirs true
+
+[root@serverb ~]# ssh production5@servera
+[production5@servera ~]$ ssh -o pubkeyauthentication=yes -o passwordauthentication=no production5@serverb
+
+[production5@serverb ~]$ exit
+[production5@servera ~]$ exit
+
+[root@serverb ~]# firewall-cmd --permanent --add-source=172.25.250.10/32 --zone=block 
+[root@serverb ~]# firewall-cmd --reload 
+
+[root@serverb ~]# systemctl restart httpd
+Job for httpd.service failed because the control process exited with error code.
+See "systemctl status httpd.service" and "journalctl -xe" for details.
+[root@serverb ~]# systemctl status httpd 
+
+[root@serverb ~]# semanage port -a -t http_port_t -p tcp 30080
+[root@serverb ~]# systemctl restart httpd
+
+[root@serverb ~]# firewall-cmd --permanent --add-port=30080/tcp
+success
+[root@serverb ~]# firewall-cmd --reload 
+success
+
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab rhcsa-compreview3 grade
+[student@workstation ~]$ lab rhcsa-compreview3 sfinish

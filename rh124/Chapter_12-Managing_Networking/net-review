@@ -1,0 +1,16 @@
+[student@workstation ~]$ lab net-review start 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ sudo -i
+
+[root@serverb ~]# ip link 
+[root@serverb ~]# nmcli connection show --active 
+
+[root@serverb ~]# nmcli connection add con-name lab ifname eth0 type ethernet ipv4.method manual ipv4.addresses 172.25.250.11/24 ipv4.gateway 172.25.250.254
+[root@serverb ~]# nmcli connection modify lab ipv4.dns 172.25.250.254
+[root@serverb ~]# nmcli connection modify lab +ipv4.addresses 10.0.1.1/24
+[root@serverb ~]# echo "10.0.1.1 private" >> /etc/hosts
+[root@serverb ~]# systemctl reboot 
+
+[student@workstation ~]$ ping -c3 serverb.lab.example.com

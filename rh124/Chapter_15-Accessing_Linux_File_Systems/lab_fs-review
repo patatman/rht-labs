@@ -1,0 +1,24 @@
+[student@workstation ~]$ lab fs-review start 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ su - 
+
+[root@serverb ~]# lsblk -fp /dev/vdb
+[root@serverb ~]# mkdir /mnt/freespace
+[root@serverb ~]# mount UUID="ea15ecb1-91ed-4412-8e21-b04c9e841c82" /mnt/freespace
+[root@serverb ~]# lsblk -fp /dev/vdb1 
+
+[root@serverb ~]# du /usr/share > /mnt/freespace/results.txt
+
+[root@serverb ~]# updatedb 
+[root@serverb ~]# locate rsyslog.conf > /mnt/freespace/search1.txt
+
+[root@serverb ~]# find /usr/share -size +50M -size -100M > /mnt/freespace/search2.txt 
+
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab fs-review grade 
+[student@workstation ~]$ lab fs-review finish 
+

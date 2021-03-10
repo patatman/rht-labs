@@ -1,0 +1,50 @@
+[student@workstation ~]$ lab storage-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com
+
+[student@serverb ~]$ sudo -i
+[root@serverb ~]# lsblk 
+[root@serverb ~]# parted /dev/vdb print
+[root@serverb ~]# parted /dev/vdb mklabel gpt
+[root@serverb ~]# parted /dev/vdb mkpart backup xfs 2048s 2GB
+
+[root@serverb ~]# udevadm settle
+[root@serverb ~]# mkfs.xfs /dev/vdb1
+
+[root@serverb ~]# mkdir /backup
+[root@serverb ~]# lsblk --fs /dev/vdb1
+
+[root@serverb ~]# vim /etc/fstab
+[root@serverb ~]# tail -1 /etc/fstab
+UUID=0d3c26dd-da37-44bf-9cb6-c339c2beba57	/backup	xfs	defaults	0 0
+[root@serverb ~]# systemctl daemon-reload 
+
+[root@serverb ~]# mount /backup/
+[root@serverb ~]# mount | grep /backup
+/dev/vdb1 on /backup type xfs (rw,relatime,seclabel,attr2,inode64,noquota)
+
+[root@serverb ~]# parted /dev/vdb mkpart swap1 linux-swap 2000MB 2512M
+[root@serverb ~]# parted /dev/vdb mkpart swap2 linux-swap 2512MB 3024M
+[root@serverb ~]# parted /dev/vdb print
+
+[root@serverb ~]# udevadm settle 
+
+[root@serverb ~]# mkswap /dev/vdb2 
+[root@serverb ~]# mkswap /dev/vdb3
+
+[root@serverb ~]# vim /etc/fstab
+[root@serverb ~]# tail -2 /etc/fstab
+UUID=b38f1b2a-8290-4c07-81b2-079a9b30f766	swap	swap	pri=10	0 0
+UUID=6bcfd5b7-7ca4-41d4-8110-06294f15aef0	swap	swap	pri=20	0 0
+
+[root@serverb ~]# swapon -a
+[root@serverb ~]# swapon --show
+
+[root@serverb ~]# systemctl reboot 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+[student@serverb ~]$ mount | grep /backup
+[student@serverb ~]$ swapon --show
+
+[student@workstation ~]$ lab storage-review grade
+[student@workstation ~]$ lab storage-review finish 

@@ -1,0 +1,22 @@
+[student@workstation ~]$ lab tuning-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ systemctl is-active tuned
+[student@serverb ~]$ sudo tuned-adm list
+[student@serverb ~]$ sudo tuned-adm profile balanced
+[student@serverb ~]$ sudo tuned-adm profile_info
+
+[student@serverb ~]$ ps aux --sort=pcpu
+[student@serverb ~]$ ps -o pid,pcpu,nice,comm $(pgrep sha1sum;pgrep md5sum)
+    PID %CPU  NI COMMAND
+   1852 92.9   2 sha1sum
+   1868 98.5  -2 md5sum
+[student@serverb ~]$ sudo renice -n 10 1852 1868
+1852 (process ID) old priority 2, new priority 10
+1868 (process ID) old priority -2, new priority 10
+[student@serverb ~]$ ps -o pid,pcpu,nice,comm $(pgrep sha1sum;pgrep md5sum)
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab tuning-review grade
+[student@workstation ~]$ lab tuning-review finish

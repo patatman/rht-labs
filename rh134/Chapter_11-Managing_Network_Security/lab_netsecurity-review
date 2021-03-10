@@ -1,0 +1,43 @@
+[student@workstation ~]$ lab netsecurity-review start
+
+[student@workstation ~]$ curl http://serverb.lab.example.com
+curl: (7) Failed to connect to serverb.lab.example.com port 80: Connection refused
+[student@workstation ~]$ curl http://serverb.lab.example.com:1001
+curl: (7) Failed to connect to serverb.lab.example.com port 1001: No route to host
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com
+[student@serverb ~]$ systemctl is-active httpd
+[student@serverb ~]$ sudo systemctl enable --now httpd
+[student@serverb ~]$ systemctl status httpd.service
+
+[student@serverb ~]$ sudo sealert -a /var/log/audit/audit.log
+[student@serverb ~]$ sudo semanage port -l | grep http
+[student@serverb ~]$ sudo semanage port -a -t http_port_t -p tcp 1001
+[student@serverb ~]$ sudo semanage port -l | grep ^http_port_t
+[student@serverb ~]$ sudo systemctl enable --now httpd
+[student@serverb ~]$ systemctl is-active httpd;systemctl is-enabled httpd
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ curl http://serverb.lab.example.com
+SERVER B
+[student@workstation ~]$ curl http://serverb.lab.example.com:1001
+curl: (7) Failed to connect to serverb.lab.example.com port 1001: No route to host
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com
+[student@serverb ~]$ firewall-cmd --get-default-zone 
+public
+[student@serverb ~]$ sudo firewall-cmd --set-default-zone=public
+[student@serverb ~]$ sudo firewall-cmd --permanent --zone=public --list-all
+[student@serverb ~]$ sudo firewall-cmd --permanent --zone=public --add-port=1001/tcp
+success
+[student@serverb ~]$ sudo firewall-cmd --reload 
+success
+[student@serverb ~]$ sudo firewall-cmd --permanent --zone=public --list-all
+
+[student@workstation ~]$ curl http://serverb.lab.example.com
+SERVER B
+[student@workstation ~]$ curl http://serverb.lab.example.com:1001
+VHOST 1
+
+[student@workstation ~]$ lab netsecurity-review grade
+[student@workstation ~]$ lab netsecurity-review finish

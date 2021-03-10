@@ -1,0 +1,23 @@
+[student@workstation ~]$ lab review-deploy start
+
+[student@workstation ~]$ sudo yum install ansible -y
+
+[student@workstation ~]$ cd ~/review-deploy/
+
+[student@workstation review-deploy]$ vim inventory
+[student@workstation review-deploy]$ cat inventory 
+[dev]
+servera.lab.example.com
+serverb.lab.example.com
+
+[student@workstation review-deploy]$ vim ansible.cfg
+[student@workstation review-deploy]$ cat ansible.cfg 
+[defaults]
+inventory=./inventory
+
+[student@workstation review-deploy]$ ansible dev -m copy -a 'content="Managed by Ansible\n" dest=/etc/motd' -b -u devops
+
+[student@workstation review-deploy]$ ansible dev -m command -a "cat /etc/motd"
+
+[student@workstation ~]$ lab review-deploy grade
+[student@workstation ~]$ lab review-deploy finish

@@ -1,0 +1,129 @@
+[student@workstation ~]$ lab role-review start
+
+[student@workstation ~]$ cd ~/role-review/
+[student@workstation role-review]$ vim web_dev_server.yml
+[student@workstation role-review]$ cat web_dev_server.yml 
+---
+- name: Configure Dev Web Server
+  hosts: dev_webserver
+  force_handlers: yes
+[student@workstation role-review]$ ansible-playbook --syntax-check web_dev_server.yml 
+
+playbook: web_dev_server.yml
+
+
+[student@workstation role-review]$ mkdir -v roles
+mkdir: created directory 'roles'
+[student@workstation role-review]$ vim roles/requirements.yml
+[student@workstation role-review]$ cat roles/requirements.yml
+- name: infra.apache
+  src: git@workstation.lab.example.com:infra/apache
+  scm: git
+  version: v1.4
+[student@workstation role-review]$ ansible-galaxy install -r roles/requirements.yml -p roles/
+- extracting infra.apache to /home/student/role-review/roles/infra.apache
+- infra.apache (v1.4) was installed successfully
+[student@workstation role-review]$ sudo yum install rhel-system-roles -y
+
+[student@workstation role-review]$ cd roles/
+[student@workstation roles]$ ansible-galaxy init apache.developer_configs
+- apache.developer_configs was created successfully
+[student@workstation roles]$ cd ..
+
+[student@workstation role-review]$ vim roles/apache.developer_configs/meta/main.yml 
+[student@workstation role-review]$ tail -7 roles/apache.developer_configs/meta/main.yml
+dependencies:
+  # List your role dependencies here, one per line. Be sure to remove the '[]' above,
+  # if you add dependencies to this list.
+  - name: infra.apache
+    src: git@workstation.lab.example.com:infra/apache
+    scm: git
+    version: v1.4
+
+[student@workstation role-review]$ mv -v developer_tasks.yml roles/apache.developer_configs/tasks/main.yml 
+renamed 'developer_tasks.yml' -> 'roles/apache.developer_configs/tasks/main.yml'
+[student@workstation role-review]$ mv -v developer.conf.j2 roles/apache.developer_configs/templates/
+renamed 'developer.conf.j2' -> 'roles/apache.developer_configs/templates/developer.conf.j2'
+
+[student@workstation role-review]$ mkdir -pv group_vars/dev_webserver
+mkdir: created directory 'group_vars'
+mkdir: created directory 'group_vars/dev_webserver'
+[student@workstation role-review]$ mv -v web_developers.yml group_vars/dev_webserver/
+renamed 'web_developers.yml' -> 'group_vars/dev_webserver/web_developers.yml'
+
+[student@workstation role-review]$ vim web_dev_server.yml 
+[student@workstation role-review]$ cat web_dev_server.yml 
+---
+- name: Configure Dev Web Server
+  hosts: dev_webserver
+  force_handlers: yes
+  roles:
+    - apache.developer_configs
+[student@workstation role-review]$ ansible-playbook --syntax-check web_dev_server.yml 
+
+playbook: web_dev_server.yml
+
+[student@workstation role-review]$ ansible-playbook web_dev_server.yml
+...
+RUNNING HANDLER [infra.apache : restart apache] ***************************************************************************************
+fatal: [servera.lab.example.com]: FAILED! => {"changed": false, "msg": "Unable to restart service httpd: Job for httpd.service failed because the control process exited with error code.\nSee \"systemctl status httpd.service\" and \"journalctl -xe\" for details.\n"}
+
+NO MORE HOSTS LEFT ********************************************************************************************************************
+
+PLAY RECAP ****************************************************************************************************************************
+servera.lab.example.com    : ok=13   changed=7    unreachable=0    failed=1    skipped=1    rescued=0    ignored=0 
+
+[student@workstation role-review]$ cat selinux.yml 
+---
+# variables used by rhel-system-roles.selinux
+
+selinux_policy: targeted
+selinux_state: enforcing
+
+selinux_ports:
+  - ports:
+      - "9081"
+      - "9082"
+    proto: 'tcp'
+    setype: 'http_port_t'
+    state: 'present'
+
+
+[student@workstation role-review]$ mv -v selinux.yml group_vars/dev_webserver/
+renamed 'selinux.yml' -> 'group_vars/dev_webserver/selinux.yml'
+
+[student@workstation role-review]$ vim web_dev_server.yml 
+[student@workstation role-review]$ cat web_dev_server.yml 
+---
+- name: Configure Dev Web Server
+  hosts: dev_webserver
+  force_handlers: yes
+  roles:
+    - apache.developer_configs
+  pre_tasks:
+    - name: Check SELinux configuration
+      block:
+        - include_role:
+            name: rhel-system-roles.selinux
+      rescue:
+        # Fail if failed for a different reason than selinux_reboot_required
+        - name: Check for general failure
+          fail:
+            msg: "SELinux role failed."
+          when: not selinux_reboot_required
+
+        - name: Restart managed host
+          reboot:
+            msg: "Ansible rebooting systemc fir updates."
+
+        - name: Reapply SELinux role to complete changes
+          include_role:
+            name: rhel-system-roles.selinux
+
+[student@workstation role-review]$ ansible-playbook --syntax-check web_dev_server.yml 
+
+playbook: web_dev_server.yml
+[student@workstation role-review]$ ansible-playbook web_dev_server.yml
+
+[student@workstation ~]$ lab role-review grade
+[student@workstation ~]$ lab role-review finish

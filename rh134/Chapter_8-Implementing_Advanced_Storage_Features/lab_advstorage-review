@@ -1,0 +1,100 @@
+[student@workstation ~]$ lab advstorage-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+[student@serverb ~]$ sudo -i
+
+[root@serverb ~]# yum install stratisd stratis-cli -y
+[root@serverb ~]# systemctl enable --now stratisd
+
+[root@serverb ~]# stratis pool create labpool /dev/vdb 
+[root@serverb ~]# stratis pool list
+Name                   Total Physical
+labpool  5 GiB / 37.63 MiB / 4.96 GiB
+
+[root@serverb ~]# stratis pool add-data labpool /dev/vdc
+
+[root@serverb ~]# stratis pool list
+Name                    Total Physical
+labpool  10 GiB / 41.63 MiB / 9.96 GiB
+
+[root@serverb ~]# stratis blockdev list labpool 
+Pool Name  Device Node  Physical Size  Tier
+labpool    /dev/vdb             5 GiB  Data
+labpool    /dev/vdc             5 GiB  Data
+
+[root@serverb ~]# stratis filesystem create labpool labfs
+[root@serverb ~]# stratis filesystem list
+Pool Name  Name   Used     Created            Device                  UUID                            
+labpool    labfs  546 MiB  Mar 03 2021 01:34  /stratis/labpool/labfs  c7292012fbce41b18636bea1e49158ca
+
+[root@serverb ~]# lsblk --output=UUID /stratis/labpool/labfs
+UUID
+c7292012-fbce-41b1-8636-bea1e49158ca
+
+[root@serverb ~]# vim /etc/fstab 
+[root@serverb ~]# tail -1 /etc/fstab
+UUID=c7292012-fbce-41b1-8636-bea1e49158ca	/labstratisvol	xfs	defaults,x-systemd.requires=stratisd.service	0 0
+
+[root@serverb ~]# mkdir /labstratisvol
+[root@serverb ~]# mount /labstratisvol
+
+[root@serverb ~]# echo "Hello World!" > /labstratisvol/labfile1
+
+[root@serverb ~]# stratis filesystem list
+Pool Name  Name   Used     Created            Device                  UUID                            
+labpool    labfs  546 MiB  Mar 03 2021 01:34  /stratis/labpool/labfs  c7292012fbce41b18636bea1e49158ca
+
+[root@serverb ~]# dd if=/dev/urandom of=/labstratisvol/labfile2 bs=1M count=2048
+
+[root@serverb ~]# stratis filesystem list
+Pool Name  Name   Used      Created            Device                  UUID                            
+labpool    labfs  2.42 GiB  Mar 03 2021 01:34  /stratis/labpool/labfs  c7292012fbce41b18636bea1e49158ca
+
+[root@serverb ~]# stratis filesystem snapshot labpool labfs labfs-snap
+
+[root@serverb ~]# stratis filesystem list
+Pool Name  Name        Used      Created            Device                       UUID                            
+labpool    labfs       2.53 GiB  Mar 03 2021 01:34  /stratis/labpool/labfs       c7292012fbce41b18636bea1e49158ca
+labpool    labfs-snap  2.53 GiB  Mar 03 2021 01:47  /stratis/labpool/labfs-snap  584d395aeb5a42169876e985bb74636f
+
+[root@serverb ~]# rm -fr /labstratisvol/labfile1 
+[root@serverb ~]# mkdir /labstratisvol-snap
+[root@serverb ~]# mount /stratis/labpool/labfs-snap /labstratisvol-snap/
+[root@serverb ~]# cat /labstratisvol-snap/labfile1 
+Hello World!
+
+[root@serverb ~]# vdo create --name=labvdo --device=/dev/vdd --vdoLogicalSize=50G
+[root@serverb ~]# vdo list
+
+[root@serverb ~]# mkfs.xfs -K /dev/mapper/labvdo 
+[root@serverb ~]# udevadm settle 
+
+[root@serverb ~]# mkdir /labvdovol
+[root@serverb ~]# lsblk --output=UUID /dev/mapper/labvdo 
+UUID
+9f530645-a1ba-4e65-b07a-747c5afd1f8f
+
+[root@serverb ~]# vim /etc/fstab 
+[root@serverb ~]# tail -1 /etc/fstab
+UUID=9f530645-a1ba-4e65-b07a-747c5afd1f8f	/labvdovol	xfs	defaults,x-systemd.requires=vdo.service	0 0
+[root@serverb ~]# mount /labvdovol
+
+[root@serverb ~]# vdostats --human-readable 
+Device                    Size      Used Available Use% Space saving%
+/dev/mapper/labvdo        5.0G      3.0G      2.0G  60%           99%
+
+[root@serverb ~]# cp /root/install.img /labvdovol/install.img.1
+
+[root@serverb ~]# vdostats --human-readable 
+Device                    Size      Used Available Use% Space saving%
+/dev/mapper/labvdo        5.0G      3.3G      1.7G  66%            5%
+
+[root@serverb ~]# cp /root/install.img /labvdovol/install.img.2
+[root@serverb ~]# vdostats --human-readable 
+Device                    Size      Used Available Use% Space saving%
+/dev/mapper/labvdo        5.0G      3.5G      1.5G  70%           47%
+
+[root@serverb ~]# systemctl reboot
+
+[student@workstation ~]$ lab advstorage-review grade
+[student@workstation ~]$ lab advstorage-review finish

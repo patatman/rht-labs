@@ -1,0 +1,54 @@
+[student@workstation ~]$ lab rhcsa-compreview4 start
+
+[student@workstation ~]$ ssh containers@serverb.lab.example.com 
+
+[containers@serverb ~]$ sudo -i
+
+[root@serverb ~]# mkdir /srv/web/
+
+[root@serverb ~]# cd /srv/web/
+[root@serverb web]# tar xvf /home/containers/rhcsa-compreview4/web-content.tgz 
+html/
+html/index.html
+
+[root@serverb web]# chown -R containers: /srv/web
+
+[root@serverb web]# ls -ld /srv/web/
+drwxr-xr-x. 3 containers containers 18 Mar  4 03:26 /srv/web/
+[root@serverb web]# ls -ld /srv/web/html/
+drwxr-xr-x. 2 containers containers 24 Mar  4 03:25 /srv/web/html/
+[root@serverb web]# ls -ld /srv/web/html/index.html 
+-rw-r--r--. 1 containers containers 546 Mar  4 03:25 /srv/web/html/index.html
+
+[root@serverb web]# yum module install container-tools -y 
+[root@serverb web]# exit
+
+[containers@serverb ~]$ podman login registry.lab.example.com
+[containers@serverb ~]$ podman run -d --name web -p 8888:8080 -v /srv/web:/var/www:Z -e HTTPD_MPM=event registry.lab.example.com/rhel8/httpd-24:1-105
+
+[containers@serverb ~]$ curl http://localhost:8888
+Comprehensive Review Web Content Test
+...
+[containers@serverb ~]$ mkdir -p ~/.config/systemd/user/
+[containers@serverb ~]$ cd ~/.config/systemd/user/
+[containers@serverb user]$ podman generate systemd --name web --files --new
+/home/containers/.config/systemd/user/container-web.service
+
+[containers@serverb user]$ podman stop web
+b9202144fee142dc8e13a0a8f2be732267bbdaa4a2b24ed6a176c515cc2deb5f
+[containers@serverb user]$ podman rm web 
+b9202144fee142dc8e13a0a8f2be732267bbdaa4a2b24ed6a176c515cc2deb5f
+
+[containers@serverb user]$ systemctl --user daemon-reload 
+[containers@serverb user]$ systemctl --user enable --now container-web.service 
+Created symlink /home/containers/.config/systemd/user/multi-user.target.wants/container-web.service → /home/containers/.config/systemd/user/container-web.service.
+Created symlink /home/containers/.config/systemd/user/default.target.wants/container-web.service → /home/containers/.config/systemd/user/container-web.service.
+
+[containers@serverb user]$ curl http://localhost:8888
+Comprehensive Review Web Content Test
+...
+[containers@serverb user]$ loginctl enable-linger 
+[containers@serverb user]$ exit
+
+[student@workstation ~]$ lab rhcsa-compreview4 grade
+[student@workstation ~]$ lab rhcsa-compreview4 finish

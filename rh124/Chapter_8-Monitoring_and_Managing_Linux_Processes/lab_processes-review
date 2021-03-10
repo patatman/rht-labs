@@ -1,0 +1,65 @@
+[student@workstation ~]$ lab processes-review start 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ mkdir ~/bin
+[student@serverb ~]$ vim ~/bin/process101
+[student@serverb ~]$ cat ~/bin/process101
+#!/bin/bash
+while true; do
+  var=1
+  while [[ var -lt 50000 ]]; do
+    var=$(($var+1))
+  done
+  sleep 1
+done
+[student@serverb ~]$ chmod +x /home/student/bin/process101
+[student@serverb ~]$ process101 &
+
+[student@serverb ~]$ top
+[student@serverb ~]$ grep "model name" /proc/cpuinfo | wc -l
+[student@serverb ~]$ ls -l /home/student/.config/procps/toprc 
+
+[student@serverb ~]$ cp ~/bin/process101 ~/bin/process102
+[student@serverb ~]$ vim ~/bin/process102
+[student@serverb ~]$ cat ~/bin/process102 
+#!/bin/bash
+while true; do
+  var=1
+  while [[ var -lt 100000 ]]; do
+    var=$(($var+1))
+  done
+  sleep 1
+done
+[student@serverb ~]$ process102 &
+[student@serverb ~]$ jobs 
+
+[student@serverb ~]$ cp ~/bin/process101 ~/bin/process103
+[student@serverb ~]$ vim ~/bin/process103
+[student@serverb ~]$ cat ~/bin/process103 
+#!/bin/bash
+while true; do
+  var=1
+  while [[ var -lt 80000 ]]; do
+    var=$(($var+1))
+  done
+  sleep 1
+done
+[student@serverb ~]$ process103 &
+[student@serverb ~]$ jobs 
+
+[student@serverb ~]$ su -
+[root@serverb ~]# pkill -SIGSTOP process101 
+[root@serverb ~]# ps jT
+
+[root@serverb ~]# pkill -SIGCONT process101 
+
+[root@serverb ~]# pkill process101 
+[root@serverb ~]# pkill process102
+[root@serverb ~]# pkill process103 
+[root@serverb ~]# exit
+
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab processes-review grade 
+[student@workstation ~]$ lab processes-review finish 

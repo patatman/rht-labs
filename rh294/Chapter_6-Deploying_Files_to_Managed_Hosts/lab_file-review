@@ -1,0 +1,78 @@
+[student@workstation ~]$ lab file-review start
+
+[student@workstation ~]$ cd ~/file-review/
+
+[student@workstation file-review]$ vim inventory
+[student@workstation file-review]$ cat inventory 
+[servers]
+serverb.lab.example.com
+[student@workstation file-review]$ ansible serverb.lab.example.com -m setup
+
+[student@workstation file-review]$ vim motd.j2
+[student@workstation file-review]$ cat motd.j2 
+System total memory: {{ ansible_facts['memtotal_mb'] }} MiB.
+System processor count: {{ ansible_facts['processor_count'] }}
+
+[student@workstation file-review]$ vim motd.yml
+[student@workstation file-review]$ cat motd.yml 
+---
+- name: Configure system
+  hosts: all
+  remote_user: devops
+  become: true
+  tasks:
+    - name: Configure a custom /etc/motd
+      template:
+        src: motd.j2
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Check file exists
+      stat:
+        path: /etc/motd
+      register: motd
+
+    - name: Display stat results
+      debug:
+        var: motd
+
+    - name: COpy custom /etc/issue file
+      copy:
+        src: files/issue
+        dest: /etc/issue
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Ensure /etc/issue.net is a symlink to /etc/issue
+      file:
+        src: /etc/issue
+        dest: /etc/issue.net
+        state: link
+        owner: root
+        group: root
+        force: yes
+
+[student@workstation file-review]$ ansible-playbook --syntax-check motd.yml 
+
+playbook: motd.yml
+[student@workstation file-review]$ ansible-playbook motd.yml
+
+student@workstation file-review]$ ssh devops@serverb.lab.example.com
+*------------------------------- PRIVATE SYSTEM -----------------------------*
+*   Access to this computer system is restricted to authorised users only.   *
+*                                                                            *
+*      Customer information is confidential and must not be disclosed.       *
+*----------------------------------------------------------------------------*
+System total memory: 821 MiB.
+System processor count: 1
+Activate the web console with: systemctl enable --now cockpit.socket
+
+Last login: Wed Mar 10 20:43:45 2021 from 172.25.250.9
+[devops@serverb ~]$ logout 
+Connection to serverb.lab.example.com closed.
+
+[student@workstation ~]$ lab file-review grade
+[student@workstation ~]$ lab file-review finish

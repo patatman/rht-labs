@@ -1,0 +1,42 @@
+[student@workstation ~]$ lab deploy-review start
+
+[student@workstation ~]$ yum list installed ansible 
+Installed Packages
+ansible.noarch                                      2.8.0-1.el8ae                                       @rhel-8-server-ansible-2.8-rpms
+
+[student@workstation ~]$ mkdir ~/deploy-review
+[student@workstation ~]$ cd ~/deploy-review
+
+[student@workstation deploy-review]$ vim ansible.cfg
+[student@workstation deploy-review]$ cat ansible.cfg 
+[defaults]
+remote_user = devops
+inventory = inventory
+
+[privilege_escalation]
+become = False
+become_method = sudo
+become_user = root
+become_ask_pass = False
+
+[student@workstation deploy-review]$ mkdir inventory/
+[student@workstation deploy-review]$ wget -O inventory/inventory http://materials.example.com/labs/deploy-review/inventory
+[student@workstation deploy-review]$ cat inventory/inventory 
+[internetweb]
+serverb.lab.example.com
+
+[intranetweb]
+servera.lab.example.com
+serverc.lab.example.com
+serverd.lab.example.com
+
+[student@workstation deploy-review]$ ansible all -m command -a 'id'
+
+[student@workstation deploy-review]$ ansible all -m copy -a 'content="This server is managed by Ansible.\n" dest=/etc/motd' --become
+[student@workstation deploy-review]$ ansible all -m copy -a 'content="This server is managed by Ansible.\n" dest=/etc/motd' --become
+
+[student@workstation deploy-review]$ ansible all -m command -a 'cat /etc/motd'
+
+[student@workstation deploy-review]$ lab deploy-review grade
+
+[student@workstation deploy-review]$ lab deploy-review finish

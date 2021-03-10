@@ -1,0 +1,28 @@
+[student@workstation ~]$ lab archive-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ su -
+
+[root@serverb ~]# mkdir /configsync
+[root@serverb ~]# rsync -av root@servera.lab.example.com:/etc /configsync
+
+[root@serverb ~]# tar -czf configfile-backup-servera.tar.gz /configsync
+
+[root@serverb ~]# tar -tzf configfile-backup-servera.tar.gz
+
+[root@serverb ~]# scp ~/configfile-backup-servera.tar.gz student@workstation:/home/student
+
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ mkdir /tmp/savedconfig
+[student@workstation ~]$ cd /tmp/savedconfig
+[student@workstation savedconfig]$ tar -tzf ~/configfile-backup-servera.tar.gz
+
+[student@workstation savedconfig]$ tar -xzf ~/configfile-backup-servera.tar.gz
+[student@workstation savedconfig]$ ls -lR
+[student@workstation savedconfig]$ cd
+
+[student@workstation ~]$ lab archive-review grade
+[student@workstation ~]$ lab archive-review finish 

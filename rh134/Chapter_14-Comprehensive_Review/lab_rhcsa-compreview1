@@ -1,0 +1,51 @@
+[student@workstation ~]$ lab rhcsa-compreview1 start
+
+[student@workstation ~]$ lab rhcsa-compreview1 break1
+
+[kiosk@foundation0 ~]$ rht-vmview view serverb
+Send 'Ctrl+Alt+Del'
+Press 'e'
+The line start with 'linux'
+Move to 'End'
+Append 'systemd.unit=emergency.target'
+Press 'Ctrl+x'
+
+[root@serverb ~]# mount -o remount,rw /
+[root@serverb ~]# mount -a
+[root@serverb ~]# vim /etc/fstab
+[root@serverb ~]$ tail -1 /etc/fstab 
+#UUID=fake   /FakeMount   xfs   defaults   0 0
+[root@serverb ~]# systemctl daemon-reload
+[root@serverb ~]# mount -a
+[root@serverb ~]# systemctl reboot
+
+[student@workstation ~]$ lab rhcsa-compreview1 break2
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ 
+[student@serverb ~]$ systemctl get-default 
+graphical.target
+[student@serverb ~]$ sudo systemctl isolate multi-user.target 
+[sudo] password for student: 
+[student@serverb ~]$ sudo systemctl set-default multi-user.target 
+Removed /etc/systemd/system/default.target.
+Created symlink /etc/systemd/system/default.target → /usr/lib/systemd/system/multi-user.target.
+[student@serverb ~]$ sudo systemctl reboot
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com
+
+[student@serverb ~]$ systemctl get-default 
+multi-user.target
+
+[student@serverb ~]$ wget http://materials.example.com/labs/backup-home.sh
+[student@serverb ~]$ chmod +x backup-home.sh 
+[student@serverb ~]$ crontab -e
+no crontab for student - using an empty one
+crontab: installing new crontab
+[student@serverb ~]$ crontab -l
+0 19-21 * * Mon-Fri	/home/student/backup-home.sh
+
+[student@serverb ~]$ sudo systemctl reboot
+
+[student@workstation ~]$ lab rhcsa-compreview1 grade
+[student@workstation ~]$ lab rhcsa-compreview1 finish

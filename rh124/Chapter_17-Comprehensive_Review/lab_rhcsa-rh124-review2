@@ -1,0 +1,46 @@
+[student@workstation ~]$ lab rhcsa-rh124-review2 start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ top
+[student@serverb ~]$ kill 2701
+[student@serverb ~]$ top
+
+[student@serverb ~]$ sudo -i
+
+[root@serverb ~]# groupadd -g 50000 database
+
+[root@serverb ~]# useradd -G database dbuser1
+[root@serverb ~]# echo redhat | passwd --stdin dbuser1
+Changing password for user dbuser1.
+passwd: all authentication tokens updated successfully.
+
+[root@serverb ~]# chage -d 0 dbuser1 
+[root@serverb ~]# chage -m 10 dbuser1 
+[root@serverb ~]# chage -M 30 dbuser1
+
+[root@serverb ~]# vim /etc/sudoers.d/dbuser1
+[root@serverb ~]# cat /etc/sudoers.d/dbuser1
+dbuser1	ALL=(ALL)	ALL
+
+[root@serverb ~]# su - dbuser1 
+[dbuser1@serverb ~]$ echo "umask 007" >> .bash_profile 
+[dbuser1@serverb ~]$ echo "umask 007" >> .bashrc 
+[dbuser1@serverb ~]$ exit
+logout
+
+[root@serverb ~]# mkdir /home/student/grading/review2
+
+[root@serverb ~]# chown student:database /home/student/grading/review2
+
+[root@serverb ~]# chmod g+s /home/student/grading/review2
+
+[root@serverb ~]# chmod 775 /home/student/grading/review2
+
+[root@serverb ~]# chmod o+t /home/student/grading/review2
+
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab rhcsa-rh124-review2 grade
+[student@workstation ~]$ lab rhcsa-rh124-review2 finish

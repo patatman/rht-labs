@@ -1,0 +1,39 @@
+[student@workstation ~]$ lab selinux-review start
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+
+[student@serverb ~]$ sudo -i
+[root@serverb ~]# curl http://serverb.lab.example.com/lab.html
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>403 Forbidden</title>
+</head><body>
+<h1>Forbidden</h1>
+<p>You don't have permission to access /lab.html
+on this server.<br />
+</p>
+</body></html>
+
+[root@serverb ~]# less /var/log/messages
+[root@serverb ~]# grep sealert /var/log/messages
+Mar  2 11:36:11 servera setroubleshoot[26578]: SELinux is preventing httpd from getattr access on the file /lab-content/lab.html. For complete SELinux messages run: sealert -l ee515e14-e707-4894-bfd3-c067388c65a0
+
+[root@serverb ~]# sealert -l ee515e14-e707-4894-bfd3-c067388c65a0
+
+[root@serverb ~]# ausearch -m AVC -ts recent
+
+[root@serverb ~]# ls -dZ /lab-content/ /var/www/html/
+      unconfined_u:object_r:default_t:s0 /lab-content/
+system_u:object_r:httpd_sys_content_t:s0 /var/www/html/
+
+[root@serverb ~]# semanage fcontext -a -t httpd_sys_content_t '/lab-content(/.*)?'
+[root@serverb ~]# restorecon -R /lab-content/
+
+[root@serverb ~]# curl http://serverb.lab.example.com/lab.html
+This is the html file for the SELinux final lab on SERVERB.
+
+[root@serverb ~]# exit
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab selinux-review grade 
+[student@workstation ~]$ lab selinux-review finish 

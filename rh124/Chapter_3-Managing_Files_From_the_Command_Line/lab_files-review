@@ -1,0 +1,74 @@
+[student@workstation ~]$ lab files-review start 
+
+[student@workstation ~]$ ssh student@serverb.lab.example.com 
+[student@serverb ~]$ mkdir -p ~/Documents/project_plans
+[student@serverb ~]$ cd ~/Documents/project_plans/
+[student@serverb project_plans]$ touch season{1,2}_project_plan.odf
+
+[student@serverb ~]$ touch tv_season{1..2}_episode{1..6}.ogg
+[student@serverb ~]$ ls tv*
+[student@serverb ~]$ touch mystery_chapter{1..8}.odf
+[student@serverb ~]$ ls mys*
+
+[student@serverb ~]$ mkdir -p ~/Videos/season{1,2}
+[student@serverb ~]$ ls ~/Videos/
+
+[student@serverb ~]$ mv ~/tv_season1_episode* ~/Videos/season1/
+[student@serverb ~]$ mv ~/tv_season2_episode* ~/Videos/season2/
+[student@serverb ~]$ ls -R ~/Videos/
+
+[student@serverb ~]$ mkdir -p ~/Documents/my_bestseller/chapters
+[student@serverb ~]$ ls -R ~/Documents
+
+[student@serverb ~]$ mkdir ~/Documents/my_bestseller/{editor,changes,vacation}
+[student@serverb ~]$ ls -R ~/Documents
+
+[student@serverb ~]$ cd ~/Documents/my_bestseller/chapters/
+[student@serverb chapters]$ mv ~/mystery_chapter* .
+[student@serverb chapters]$ ls
+
+[student@serverb chapters]$ mv mystery_chapter{1,2}.odf ../editor/
+[student@serverb chapters]$ ls
+[student@serverb chapters]$ ls ../editor/
+
+[student@serverb chapters]$ mv mystery_chapter{7,8}.odf ../vacation/
+[student@serverb chapters]$ ls
+[student@serverb chapters]$ ls ../vacation/
+
+[student@serverb chapters]$ cd ~/Videos/season2/
+[student@serverb season2]$ cp tv_season2_episode1.ogg ~/Documents/my_bestseller/vacation/
+
+[student@serverb season2]$ cd ~/Documents/my_bestseller/vacation/
+[student@serverb vacation]$ ls
+
+[student@serverb vacation]$ cd -
+[student@serverb season2]$ cp tv_season2_episode2.ogg ~/Documents/my_bestseller/vacation/
+
+[student@serverb season2]$ cd -
+[student@serverb season2]$ ls
+
+[student@serverb vacation]$ cd ~/Documents/my_bestseller/
+[student@serverb my_bestseller]$ cp chapters/mystery_chapter{5,6}.odf changes/
+[student@serverb my_bestseller]$ ls chapters
+[student@serverb my_bestseller]$ ls changes
+
+[student@serverb my_bestseller]$ cd changes/
+[student@serverb changes]$ cp mystery_chapter5.odf mystery_chapter_$(date +%F).odf
+[student@serverb changes]$ cp mystery_chapter5.odf mystery_chapter_$(date +%s).odf
+[student@serverb changes]$ ls
+
+[student@serverb changes]$ rm -fr * 
+[student@serverb changes]$ cd ..
+[student@serverb my_bestseller]$ rmdir changes/
+[student@serverb my_bestseller]$ ls
+
+[student@serverb my_bestseller]$ rm -fr vacation/
+[student@serverb my_bestseller]$ ls
+[student@serverb my_bestseller]$ cd 
+
+[student@serverb ~]$ mkdir ~/Documents/backups
+[student@serverb ~]$ ln ~/Documents/project_plans/season2_project_plan.odf ~/Documents/backups/season2_project_plan.odf.back
+[student@serverb ~]$ exit
+
+[student@workstation ~]$ lab files-review grade 
+[student@workstation ~]$ lab files-review finish 

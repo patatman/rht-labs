@@ -1,0 +1,41 @@
+[student@workstation ~]$ lab ssh-review start 
+
+[student@workstation ~]$ ssh student@servera.lab.example.com 
+[student@servera ~]$ su - production1 
+
+[production1@servera ~]$ ssh-keygen 
+[production1@servera ~]$ ssh-copy-id production1@serverb.lab.example.com 
+[production1@servera ~]$ ssh production1@serverb.lab.example.com 
+
+[production1@serverb ~]$ su - 
+
+[root@serverb ~]# vim /etc/ssh/sshd_config 
+[root@serverb ~]# grep PermitRootLogin /etc/ssh/sshd_config
+#PermitRootLogin yes
+PermitRootLogin no
+# the setting of "PermitRootLogin without-password".
+[root@serverb ~]# systemctl reload sshd.service 
+
+[student@servera ~]$ ssh production1@servera.lab.example.com 
+[production1@servera ~]$ ssh root@serverb.lab.example.com 
+...Permission denied...
+
+[root@serverb ~]# vim /etc/ssh/sshd_config 
+[root@serverb ~]# grep PasswordAuthentication /etc/ssh/sshd_config 
+...
+#PasswordAuthentication yes
+PasswordAuthentication no
+...
+[root@serverb ~]# systemctl reload sshd.service 
+
+[production1@servera ~]$ ssh production2@serverb.lab.example.com 
+production2@serverb.lab.example.com: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+
+[root@serverb ~]# grep PubkeyAuthentication /etc/ssh/sshd_config 
+#PubkeyAuthentication yes
+
+[production1@servera ~]$ ssh production1@serverb.lab.example.com 
+[production1@serverb ~]$ 
+
+[student@workstation ~]$ lab ssh-review grade
+[student@workstation ~]$ lab ssh-review finish

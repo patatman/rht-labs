@@ -1,0 +1,31 @@
+[student@workstation ~]$ lab netstorage-review start
+
+[student@workstation ~]$ ssh student@servera.lab.example.com
+
+[student@servera ~]$ sudo -i
+
+[root@servera ~]# yum install autofs -y
+
+[root@servera ~]# mount -t nfs serverb.lab.example.com:/shares /mnt/
+[root@servera ~]# ls -l /mnt/
+total 0
+drwxrws---. 2 root managers   25 Mar  3 02:28 management
+drwxrws---. 2 root operators  25 Mar  3 02:28 operation
+drwxrws---. 2 root production 25 Mar  3 02:28 production
+
+[root@servera ~]# umount /mnt
+
+[root@servera ~]# vim /etc/auto.master.d/shares.autofs
+[root@servera ~]# cat /etc/auto.master.d/shares.autofs
+/remote	/etc/auto.shares
+[root@servera ~]# vim /etc/auto.shares
+[root@servera ~]# cat /etc/auto.shares
+* -rw,sync,fstype=nfs4 serverb.lab.example.com:/shares/&
+[root@servera ~]# systemctl enable --now autofs
+
+[root@servera ~]# exit
+[student@servera ~]$ exit
+
+[student@workstation ~]$ lab netstorage-review grade 
+[student@workstation ~]$ lab netstorage-review finish 
+

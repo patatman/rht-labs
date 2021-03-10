@@ -1,0 +1,265 @@
+[student@workstation ~]$ lab review-roles start
+
+[student@workstation ~]$ cd ~/review-roles/
+
+[student@workstation review-roles]$ mv -v inventory inventory.tmp
+renamed 'inventory' -> 'inventory.tmp'
+[student@workstation review-roles]$ mkdir -v inventory
+mkdir: created directory 'inventory'
+[student@workstation review-roles]$ mv -v inventory.tmp inventory/inventory
+renamed 'inventory.tmp' -> 'inventory/inventory'
+[student@workstation review-roles]$ chmod 755 -v crinventory.py 
+mode of 'crinventory.py' changed from 0644 (rw-r--r--) to 0755 (rwxr-xr-x)
+[student@workstation review-roles]$ mv -v crinventory.py inventory/
+renamed 'crinventory.py' -> 'inventory/crinventory.py'
+
+[student@workstation review-roles]$ vim ansible.cfg 
+[student@workstation review-roles]$ cat ansible.cfg 
+[defaults]
+remote_user=devops
+inventory=./inventory
+
+[privilege_escalation]
+become=True
+become_method=sudo
+become_user=root
+become_ask_pass=False
+
+[student@workstation review-roles]$ ansible-inventory --list all
+{
+    "_meta": {
+        "hostvars": {
+            "servera.lab.example.com": {},
+            "serverb.lab.example.com": {},
+            "serverc.lab.example.com": {},
+            "serverd.lab.example.com": {}
+        }
+    },
+    "all": {
+        "children": [
+            "ftpclients",
+            "ftpservers",
+            "ungrouped"
+        ]
+    },
+    "ftpclients": {
+        "hosts": [
+            "servera.lab.example.com",
+            "serverc.lab.example.com"
+        ]
+    },
+    "ftpservers": {
+        "hosts": [
+            "serverb.lab.example.com",
+            "serverd.lab.example.com"
+        ]
+    }
+}
+
+[student@workstation review-roles]$ mkdir -v roles
+mkdir: created directory 'roles'
+[student@workstation review-roles]$ cd roles/
+[student@workstation roles]$ ansible-galaxy init ansible-vsftpd
+- ansible-vsftpd was created successfully
+[student@workstation roles]$ cd ..
+
+[student@workstation review-roles]$ tree roles/
+roles/
+└── ansible-vsftpd
+    ├── defaults
+    │   └── main.yml
+    ├── files
+    ├── handlers
+    │   └── main.yml
+    ├── meta
+    │   └── main.yml
+    ├── README.md
+    ├── tasks
+    │   └── main.yml
+    ├── templates
+    ├── tests
+    │   ├── inventory
+    │   └── test.yml
+    └── vars
+        └── main.yml
+
+9 directories, 8 files
+
+[student@workstation review-roles]$ mv -v defaults-template.yml roles/ansible-vsftpd/defaults/main.yml 
+renamed 'defaults-template.yml' -> 'roles/ansible-vsftpd/defaults/main.yml'
+[student@workstation review-roles]$ mv -v vars.yml roles/ansible-vsftpd/vars/main.yml 
+renamed 'vars.yml' -> 'roles/ansible-vsftpd/vars/main.yml'
+[student@workstation review-roles]$ mv -v vsftpd.conf.j2 roles/ansible-vsftpd/templates/
+renamed 'vsftpd.conf.j2' -> 'roles/ansible-vsftpd/templates/vsftpd.conf.j2'
+
+[student@workstation review-roles]$ vim roles/ansible-vsftpd/tasks/main.yml
+[student@workstation review-roles]$ cat roles/ansible-vsftpd/tasks/main.yml
+---
+# tasks file for ansible-vsftpd
+- name: tasks file for ansible-vsftpd
+  yum:
+    name: '{{ vsftpd_package }}'
+    state: present
+
+- name: Ensure service is started
+  service:
+    name: '{{ vsftpd_service }}'
+    state: started
+    enabled: true
+
+- name: Configuration file is installed
+  template:
+    src: vsftpd.conf.j2
+    dest: '{{ vsftpd_config_file }}'
+    owner: root
+    group: root
+    mode: '0660'
+    setype: etc_t
+  notify: restart vsftpd
+
+- name: firewalld is installed
+  yum:
+    name: firewalld
+    state: present
+
+- name: firewalld is started and enabled
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: FTP port is open
+  firewalld:
+    service: ftp
+    permanent: true
+    state: enabled
+    immediate: yes
+
+- name: Passive FTP data ports allowed through the firewall
+  firewalld:
+    port: 21000-21020/tcp
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+[student@workstation review-roles]$ vim roles/ansible-vsftpd/handlers/main.yml
+[student@workstation review-roles]$ cat roles/ansible-vsftpd/handlers/main.yml
+---
+# handles file for ansible-vsftpd
+- name: restart vsftpd
+  service:
+    name: "{{ vsftpd_service }}"
+    state: restarted
+
+[student@workstation review-roles]$ vim roles/ansible-vsftpd/meta/main.yml
+[student@workstation review-roles]$ cat roles/ansible-vsftpd/meta/main.yml
+galaxy_info:
+  author: Red Hat Training
+  description: example role for RH294
+  company: Red Hat
+...
+  license: BSD
+...
+
+[student@workstation review-roles]$ vim roles/ansible-vsftpd/README.md 
+[student@workstation review-roles]$ cat roles/ansible-vsftpd/README.md
+ansible-vsftpd
+=========
+Example ansible-vsftpd role from Red Hat's "Linux Automation" (RH294) course.
+
+Role Variables
+--------------
+* defaults/main.yml contains variables used to configure the vsftpd.conf template
+* vars/main.yml contains the name of the vsftpd service, the name of the RPM package, and the location of the service's configuration file
+
+Dependencies
+------------
+
+None
+
+Example Playbook
+----------------
+
+    - hosts: servers
+      roles:
+				- ansible-vsftpd
+
+License
+-------
+
+BSD
+
+Author Information
+------------------
+Red Hat (training@redhat.com)
+
+[student@workstation review-roles]$ rm -frv roles/ansible-vsftpd/tests
+removed 'roles/ansible-vsftpd/tests/inventory'
+removed 'roles/ansible-vsftpd/tests/test.yml'
+removed directory 'roles/ansible-vsftpd/tests'
+
+[student@workstation review-roles]$ vim vsftpd-configure.yml
+[student@workstation review-roles]$ cat vsftpd-configure.yml 
+---
+- name: Install and configure vsftpd
+  hosts: ftpservers
+  vars:
+    vsftpd_anon_root: /mnt/share/
+    vsftpd_local_root: /mnt/share/
+  roles:
+    - ansible-vsftpd
+  tasks:
+    - name: /dev/vdb1 is partitioned
+      command: >
+        parted --script /dev/vdb mklabel gpt mkpart primary 1MiB 100%
+      args:
+        creates: /dev/vdb1
+
+    - name: XFS file system exists on /dev/vdb1
+      filesystem:
+        dev: /dev/vdb1
+        fstype: xfs
+        force: true
+
+    - name: anon_root mount point exists
+      file:
+        path: '{{ vsftpd_anon_root }}'
+        state: directory
+
+    - name: /dev/vdb1 is mounted on anon_root
+      mount:
+        name: '{{ vsftpd_anon_root }}'
+        src: /dev/vdb1
+        fstype: xfs
+        state: mounted
+        dump: '1'
+        passno: '2'
+      notify: restart vsftpd
+
+    - name: Make sure permissions on mounted fs are correct
+      file:
+        path: '{{ vsftpd_anon_root }}'
+        owner: root
+        group: root
+        mode: '0755'
+        setype: '{{ vsftpd_setype }}'
+        state: directory
+
+    - name: Copy README to the ftp anon_root
+      copy:
+        dest: '{{ vsftpd_anon_root }}/README'
+        content: "Welcome to the FTP server at {{ ansible_fqdn }}\n"
+        setype: '{{ vsftpd_setype }}'
+
+[student@workstation review-roles]$ vim site.yml 
+[student@workstation review-roles]$ cat site.yml 
+#FTP Servers playbook
+- import_playbook: vsftpd-configure.yml
+
+#FTP Clients playbook
+- import_playbook: ftpclients.yml
+
+[student@workstation review-roles]$ ansible-playbook site.yml
+
+[student@workstation ~]$ lab review-roles grade
+[student@workstation ~]$ lab review-roles finish

@@ -1,0 +1,39 @@
+[student@workstation ~]$ lab boot-review start
+
+[kiosk@foundation0 ~]$ rht-vmview view serverb
+
+Send 'Ctrl+Alt+Del'
+Press 'e'
+The line start with 'linux'
+Move to 'End'
+Append 'rd.break'
+Press 'Ctrl+x'
+
+switch_root:/# mount -o remount,rw /sysroot
+switch_root:/# chroot /sysroot 
+sh-4.4# passwd root
+sh-4.4# touch /.autorelabel
+sh-4.4# exit
+switch_root:/# exit
+
+[kiosk@foundation0 ~]$ rht-vmview view serverb
+Send 'Ctrl+Alt+Del'
+Press 'e'
+The line start with 'linux'
+Move to 'End'
+Append 'systemd.unit=emergency.target'
+Press 'Ctrl+x'
+
+[root@serverb ~]# mount -o remount,rw /
+[root@serverb ~]# mount -a
+[root@serverb ~]# vim /etc/fstab
+[root@serverb ~]# systemctl daemon-reload
+[root@serverb ~]# mount -a
+[root@serverb ~]# systemctl reboot
+
+[root@serverb ~]# systemctl set-default graphical.target 
+[root@serverb ~]# systemctl get-default 
+[root@serverb ~]# exit
+
+[student@workstation ~]$ lab boot-review grade
+[student@workstation ~]$ lab boot-review finish
